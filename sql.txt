@@ -1,0 +1,98 @@
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- 管理员信息表
+DROP TABLE IF EXISTS `administrator`;
+CREATE TABLE `administrator`  (
+  `admin_username` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, --管理员昵称
+  `admin_password` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, -- 管理员密码
+  `admin_name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, --管理员真实名字
+  `admin_sex` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, --管理员性别
+  `admin_tel` char(11) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, --管理员电话
+  PRIMARY KEY (`admin_username`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Compact;
+
+--书籍信息表
+DROP TABLE IF EXISTS `bookdb`;
+CREATE TABLE `bookdb`  (
+  `book_id` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, --书籍id
+  `book_name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, --书籍名字
+  `book_author` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, --书籍作者
+  `book_press` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, --书籍出版商
+  `book_category` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, --书籍分类
+  `filename` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL, --服务器上的文件名
+  `path` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL, --服务器上的路径
+  `book_desc` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, --书籍描述
+  `book_price` double(10, 0) NOT NULL, --书籍价格
+  `book_kunumber` int(11) NOT NULL, --书籍库存数量
+  `book_xiaonumber` int(11) NOT NULL, --书籍销量
+  PRIMARY KEY (`book_id`) USING BTREE,
+  INDEX `bookdb_ibfk_1`(`book_category`) USING BTREE,
+  CONSTRAINT `bookdb_ibfk_1` FOREIGN KEY (`book_category`) REFERENCES `category` (`category_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Compact;
+
+--书籍分类信息表
+DROP TABLE IF EXISTS `category`;
+CREATE TABLE `category`  (
+  `category_id` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, --书籍分类id
+  `category_name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, --书籍分类名字
+  `category_desc` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, --书籍分类描述
+  PRIMARY KEY (`category_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Compact;
+
+--用户收藏
+DROP TABLE IF EXISTS `favorite`;
+CREATE TABLE `favorite`  (
+  `favorite_id` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, --收藏id
+  `user_id` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL, --收藏用户的id
+  `book_id` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL, --收藏书籍的id
+  PRIMARY KEY (`favorite_id`) USING BTREE,
+  INDEX `user_id`(`user_id`) USING BTREE,
+  INDEX `book_id`(`book_id`) USING BTREE,
+  CONSTRAINT `favorite_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `favorite_ibfk_2` FOREIGN KEY (`book_id`) REFERENCES `bookdb` (`book_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Compact;
+
+--订单子项
+DROP TABLE IF EXISTS `orderitems`;
+CREATE TABLE `orderitems`  (
+  `id` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, --订单id
+  `quantity` int(11) NULL DEFAULT NULL, --数量
+  `price` double NULL DEFAULT NULL, --价格
+  `book_id` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL, --书籍id
+  `ordernum` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL, --订单号 --通过这个与主订单联系起来
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `book_id_fk`(`book_id`) USING BTREE,
+  INDEX `ordernum_fk`(`ordernum`) USING BTREE,
+  CONSTRAINT `book_id_fk` FOREIGN KEY (`book_id`) REFERENCES `bookdb` (`book_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `ordernum_fk` FOREIGN KEY (`ordernum`) REFERENCES `orders` (`ordernum`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Compact;
+
+--总订单表
+DROP TABLE IF EXISTS `orders`;
+CREATE TABLE `orders`  (
+  `ordernum` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, --订单号
+  `quantity` int(11) NULL DEFAULT NULL, --总共数量
+  `money` double NULL DEFAULT NULL, --总购价格
+  `time` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL, --时间
+  `status` int(11) NULL DEFAULT NULL, --订单状态
+  `userId` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL, --用户id
+  PRIMARY KEY (`ordernum`) USING BTREE,
+  INDEX `user_Id_fk`(`userId`) USING BTREE,
+  CONSTRAINT `user_Id_fk` FOREIGN KEY (`userId`) REFERENCES `user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Compact;
+
+--用户信息表
+DROP TABLE IF EXISTS `user`;
+CREATE TABLE `user`  (
+  `user_id` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, --用户id
+  `user_username` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, --用户昵称
+  `user_password` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, -- 用户密码 
+  `user_name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, --用户名字
+  `user_sex` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL, --用户性别
+  `user_tel` char(11) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL, --用户电话
+  `user_address` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL, --用户地址
+  PRIMARY KEY (`user_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Compact;
+
+SET FOREIGN_KEY_CHECKS = 1;
